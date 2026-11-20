@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Café 3D - Menú Completo Interactivo</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    :root {
+      --brand-blue: #0400FF;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .bg-brand-blue { background-color: var(--brand-blue); }
+    .text-brand-blue { color: var(--brand-blue); }
+    .border-brand-blue { border-color: var(--brand-blue); }
+    
+    .paper-napkin {
+      background-color: #FAF6EF;
+      background-image: radial-gradient(#E8E0D0 0.75px, transparent 0.75px);
+      background-size: 8px 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+      border: 1px dashed #D5CCA8;
+    }
+    
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(4, 0, 255, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(4, 0, 255, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(4, 0, 255, 0); }
+    }
+    .pulse-btn {
+      animation: pulse-ring 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col justify-between">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="goToMenu()">
+        <div class="w-10 h-10 rounded-xl bg-brand-blue flex items-center justify-center text-white font-black text-xl tracking-tighter shadow-md shadow-blue-500/20">
+          3D
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg tracking-tight text-slate-900 leading-none">ORIGEN & CRUMB</h1>
+          <span class="text-xs font-semibold uppercase tracking-wider text-brand-blue">Café de Especialidad</span>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-brand-blue border border-blue-200">
+          Mesa 04 • En sala
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-5xl mx-auto w-full p-4 flex-1">
+
+    <!-- ==================== VIEW: PLATO 3D INTERACTIVO ==================== -->
+    <div id="view-dish" class="space-y-4">
+      
+      <!-- Top Bar: Back to Menu button -->
+      <div class="flex items-center justify-between">
+        <button onclick="goToMenu()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border-2 border-brand-blue text-brand-blue font-bold text-sm hover:bg-blue-50 transition active:scale-95 shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          ← Volver al Menú Completo
+        </button>
+
+        <span id="dish-badge-status" class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          Experiencia 3D • Toca los ingredientes
+        </span>
+      </div>
+
+      <!-- Main Visualizer Card -->
+      <div class="relative bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-md">
+        
+        <!-- Render Image Viewer with Dynamic Hotspots -->
+        <div class="relative w-full aspect-[16/10] bg-slate-900 overflow-hidden select-none">
+          <img id="dish-image" src="preview_render.png" alt="Render del Plato" class="w-full h-full object-cover transition-opacity duration-300">
+          
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-black/20 pointer-events-none"></div>
+
+          <!-- Hotspots Container -->
+          <div id="dish-hotspots" class="absolute inset-0 z-20">
+            <!-- Dynamic Hotspots Injected by JS -->
+          </div>
+
+          <div class="absolute bottom-4 left-4 z-10 pointer-events-none">
+            <div class="px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md text-white text-xs font-medium border border-white/10 flex items-center gap-2">
+              <svg class="w-4 h-4 text-brand-blue" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"/></svg>
+              Toca los puntos en la escena para ver sus ingredientes detallados
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Sub-bar -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span id="dish-category" class="text-xs font-bold uppercase tracking-wider text-brand-blue block">Repostería & Café</span>
+            <h2 id="dish-name" class="text-lg font-black text-slate-900">Pan de Banano Chunks & Café Latte</h2>
+          </div>
+
+          <div class="text-right">
+            <span class="text-xs text-slate-500 block font-medium">Precio final</span>
+            <span id="dish-price" class="text-2xl font-black text-brand-blue">$18.500 COP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== SERVILLETA DE PAPEL INTERACTIVA ==================== -->
+      <section id="napkin-section" class="paper-napkin rounded-2xl p-6 relative overflow-hidden transition-all duration-300">
+        
+        <div class="flex items-start justify-between border-b-2 border-brand-blue pb-4 mb-5">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[11px] font-black uppercase tracking-wider bg-brand-blue text-white mb-1.5">
+              Servilleta de Ingredientes
+            </div>
+            <h3 id="napkin-title" class="text-2xl font-black text-brand-blue tracking-tight">
+              INGREDIENTES DEL PLATO
+            </h3>
+            <p id="napkin-subtitle" class="text-sm font-semibold text-slate-700">
+              Desglose detallado de insumos y preparación artesanal
+            </p>
+          </div>
+          
+          <div class="text-right hidden sm:block">
+            <span class="text-[11px] font-bold text-slate-500 block uppercase">Vajilla oficial</span>
+            <span class="text-xs font-extrabold text-brand-blue">Cerámica Azul #0400FF</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Content Grid -->
+        <div class="grid sm:grid-cols-2 gap-6">
+          <div class="space-y-3">
+            <h4 class="text-xs font-black uppercase tracking-wider text-brand-blue border-b border-blue-200 pb-1">
+              Componentes & Insumos
+            </h4>
+            <ul id="napkin-ingredients" class="text-sm space-y-2 text-slate-800 font-medium">
+              <!-- Injected by JS -->
+            </ul>
+          </div>
+
+          <div class="space-y-3 bg-white/70 p-4 rounded-xl border border-[#E3DAC9]">
+            <h4 class="text-xs font-black uppercase tracking-wider text-brand-blue border-b border-blue-200 pb-1">
+              Alérgenos & Notas Culinarias
+            </h4>
+            
+            <div id="napkin-badges" class="flex flex-wrap gap-2 pt-1">
+              <!-- Injected by JS -->
+            </div>
+
+            <p id="napkin-notes" class="text-xs text-slate-600 leading-relaxed pt-2">
+              <!-- Injected by JS -->
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-dashed border-[#D5CCA8] flex flex-wrap items-center justify-between text-xs font-bold text-slate-500">
+          <span>Servido en mesa redonda plateada & vajilla azul #0400FF</span>
+          <span class="text-brand-blue uppercase tracking-wider">Origen & Calidad Garantizada</span>
+        </div>
+      </section>
+
+      <!-- Bottom Order Action Bar -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 flex flex-wrap items-center justify-between gap-4 shadow-sm">
+        <div>
+          <span class="text-xs text-slate-500 block font-medium">¿Deseas este producto en tu mesa?</span>
+          <span id="order-product-name" class="text-base font-black text-slate-900">Pan de Banano & Café Latte</span>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <button onclick="alert('🛎️ Un mesero se acerca a la Mesa 04 en un momento.')" class="px-4 py-2.5 rounded-xl border-2 border-slate-300 text-slate-700 font-bold text-sm hover:border-slate-400 transition">
+            🛎️ Llamar al mesero
+          </button>
+          <button onclick="alert('✅ ¡Producto añadido a la orden de la Mesa 04!')" class="px-6 py-2.5 rounded-xl bg-brand-blue text-white font-extrabold text-sm shadow-md shadow-blue-500/30 hover:bg-blue-700 transition active:scale-95">
+            Añadir a mi orden
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== VIEW: MENÚ COMPLETO (CATÁLOGO) ==================== -->
+    <div id="view-menu" class="space-y-6 hidden">
+      
+      <!-- Banner Header -->
+      <div class="bg-brand-blue text-white rounded-2xl p-6 shadow-lg shadow-blue-600/20 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider bg-white/20 px-2.5 py-1 rounded-md">Carta General</span>
+          <h2 class="text-3xl font-black tracking-tight mt-1">NUESTRO MENÚ DE TEMPORADA</h2>
+          <p class="text-sm text-blue-100 font-medium">Todos los productos cuentan con su modelo 3D renderizado y su servilleta interactiva de ingredientes.</p>
+        </div>
+      </div>
+
+      <!-- Categories Pills -->
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <button onclick="filterCategory('all')" id="cat-all" class="cat-pill px-4 py-2 rounded-xl bg-brand-blue text-white text-xs font-bold whitespace-nowrap shadow-sm">
+          Todos los productos (6)
+        </button>
+        <button onclick="filterCategory('bakery')" id="cat-bakery" class="cat-pill px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 text-xs font-bold whitespace-nowrap hover:border-brand-blue transition">
+          Repostería & Bakery
+        </button>
+        <button onclick="filterCategory('coffee')" id="cat-coffee" class="cat-pill px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 text-xs font-bold whitespace-nowrap hover:border-brand-blue transition">
+          Cafés de Especialidad
+        </button>
+        <button onclick="filterCategory('brunch')" id="cat-brunch" class="cat-pill px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 text-xs font-bold whitespace-nowrap hover:border-brand-blue transition">
+          Brunch & Salados
+        </button>
+        <button onclick="filterCategory('cold')" id="cat-cold" class="cat-pill px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 text-xs font-bold whitespace-nowrap hover:border-brand-blue transition">
+          Bebidas Frías
+        </button>
+      </div>
+
+      <!-- Menu Products Grid -->
+      <div id="products-grid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-5">
+        <!-- Rendered by JS -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-8">
+    <div class="max-w-5xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+      <span>© 2026 Origen & Crumb Cafetería • Menú 3D Interactivo</span>
+      <span class="text-brand-blue font-bold">Identidad de Marca Azul #0400FF</span>
+    </div>
+  </footer>
+
+  <!-- DATABASE & INTERACTIVE LOGIC -->
+  <script>
+    const PRODUCTS = {
+      banana: {
+        id: 'banana',
+        category: 'bakery',
+        categoryName: 'Repostería & Bakery',
+        name: 'Pan de Banano Chunks & Café Latte',
+        price: '$18.500 COP',
+        image: 'preview_render.png',
+        desc: 'Rebanada densa y húmeda de pan de banano con grandes chunks de chocolate oscuro semi-fundidos y bordes bien doraditos, servida con un latte cremoso.',
+        hotspots: [
+          { label: '🍌 Pan de Banano & Chunks', x: '36%', y: '55%', type: 'banana' },
+          { label: '☕ Café Latte Huila', x: '66%', y: '45%', type: 'latte' }
+        ],
+        napkinTitle: 'PAN DE BANANO CON CHUNKS DE CHOCOLATE',
+        napkinSubtitle: 'Receta artesanal horneada en casa • Miga húmeda y bordes tostados',
+        ingredients: [
+          '<strong>Harina de Avena & Almendra Pura:</strong> Molida en piedra, sin harinas ultraprocesadas.',
+          '<strong>Bananos Criollos Madurados:</strong> Caramelizados naturalmente al horno para dulzor sin azúcares refinados.',
+          '<strong>Chunks 70% Cacao Amargo:</strong> Trozos grandes semi-fundidos de origen Tumaco, fundentes en boca.',
+          '<strong>Huevos de Campo Orgánicos:</strong> De gallinas libres de pastoreo.',
+          '<strong>Grasas Saludables:</strong> Aceite de coco virgen prensado en frío y canela pura de Ceilán.'
+        ],
+        badges: [
+          { text: 'Sin Azúcar Refinada', color: 'bg-emerald-100 text-emerald-800' },
+          { text: 'Contiene Huevos', color: 'bg-amber-100 text-amber-800' },
+          { text: 'Contiene Almendras', color: 'bg-purple-100 text-purple-800' },
+          { text: 'Apto Vegetariano', color: 'bg-blue-100 text-brand-blue' }
+        ],
+        notes: '<strong>Técnica de horneado:</strong> Los lados angostos de la rebanada reciben calor directo para crear una corteza caramelizada crujiente, mientras la masa interior conserva su humedad densa y los trozos de chocolate se mantienen derretidos.'
+      },
+      tostada: {
+        id: 'tostada',
+        category: 'brunch',
+        categoryName: 'Brunch & Salados',
+        name: 'Tostada Masa Madre & Huevo Poché',
+        price: '$16.000 COP',
+        image: 'render_tostada_aguacate.png',
+        desc: 'Rebanada gruesa de pan de masa madre tostada al punto, aguacate macerado con lima, huevo de campo poché con yema líquida y hojuelas de chile.',
+        hotspots: [
+          { label: '🥑 Aguacate & Masa Madre', x: '42%', y: '58%', type: 'toast' },
+          { label: '🥚 Huevo Poché Líquido', x: '52%', y: '44%', type: 'egg' }
+        ],
+        napkinTitle: 'TOSTADA DE MASA MADRE CON AGUACATE & HUEVO POCHÉ',
+        napkinSubtitle: 'Fermentación natural de 48 horas y huevo de granja fresco',
+        ingredients: [
+          '<strong>Pan de Masa Madre (48h):</strong> Harina de trigo orgánico y centeno, corteza crujiente alveolar.',
+          '<strong>Aguacate Hass Macerado:</strong> Con zumo de lima recién exprimido y aceite de oliva extra virgen arbequina.',
+          '<strong>Huevo Poché Orgánico:</strong> Cocido a 63°C durante 4 minutos para lograr clara sedosa y yema fundente.',
+          '<strong>Condimentos & Toppings:</strong> Escamas de sal marina Maldon, hojuelas de chile seco y semillas de sésamo tostadas.'
+        ],
+        badges: [
+          { text: 'Fermentación 48h', color: 'bg-blue-100 text-brand-blue' },
+          { text: 'Huevos de Pastoreo', color: 'bg-amber-100 text-amber-800' },
+          { text: 'Contiene Gluten', color: 'bg-rose-100 text-rose-800' },
+          { text: 'Alto en Proteína', color: 'bg-emerald-100 text-emerald-800' }
+        ],
+        notes: '<strong>Origen del pan:</strong> Elaborado exclusivamente con masa madre viva de 5 años de antigüedad en fermentación lenta en frío, facilitando una digestión ligera y un sabor complejo y ligeramente ácido.'
+      },
+      croissant: {
+        id: 'croissant',
+        category: 'bakery',
+        categoryName: 'Repostería & Bakery',
+        name: 'Croissant Francés Mantequilla & Almendras',
+        price: '$9.500 COP',
+        image: 'render_croissant_almendras.png',
+        desc: 'Hojaldrado tradicional francés con 27 capas de mantequilla de pastoreo, relleno de crema de almendras y cubierto de almendras tostadas crujientes.',
+        hotspots: [
+          { label: '🥐 Hojaldre Francés', x: '45%', y: '52%', type: 'pastry' },
+          { label: '🌰 Almendras Tostadas', x: '55%', y: '38%', type: 'almond' }
+        ],
+        napkinTitle: 'CROISSANT DE MANTEQUILLA & ALMENDRAS',
+        napkinSubtitle: '27 capas de laminado tradicional y mantequilla de pastoreo',
+        ingredients: [
+          '<strong>Mantequilla de Pastoreo (84% M.G.):</strong> Elaborada con crema de leche de vacas alimentadas a pasto.',
+          '<strong>Harina de Fuerza Francesa (T55):</strong> Para un hojaldrado alveolar esponjoso y liviano.',
+          '<strong>Crema Frangipane de Almendra:</strong> Pasta de almendra pura tostada, mantequilla y vainilla natural de Madagascar.',
+          '<strong>Cobertura:</strong> Láminas de almendra tostadas al horno y lluvia ligera de azúcar glas.'
+        ],
+        badges: [
+          { text: 'Mantequilla 84%', color: 'bg-amber-100 text-amber-800' },
+          { text: 'Contiene Frutos Secos', color: 'bg-purple-100 text-purple-800' },
+          { text: 'Contiene Lácteos', color: 'bg-blue-100 text-brand-blue' },
+          { text: 'Receta Francesa', color: 'bg-slate-100 text-slate-800' }
+        ],
+        notes: '<strong>Horneado diario:</strong> Se hornea en 3 tandas al día (8:00 AM, 11:30 AM y 3:30 PM) para asegurar que siempre lo disfrutes tibio, crujiente por fuera y fundente por dentro.'
+      },
+      coldbrew: {
+        id: 'coldbrew',
+        category: 'cold',
+        categoryName: 'Bebidas Frías',
+        name: 'Cold Brew Citrus Tonic',
+        price: '$11.000 COP',
+        image: 'render_cold_brew.png',
+        desc: 'Maceración de café de altura por 18 horas a 4°C, agua tónica botánica, hielo cristalino, rodaja de naranja deshidratada y romero fresco.',
+        hotspots: [
+          { label: '🧊 Cold Brew 18h', x: '50%', y: '58%', type: 'coffee' },
+          { label: '🍊 Cítrico & Tónica', x: '62%', y: '32%', type: 'tonic' }
+        ],
+        napkinTitle: 'COLD BREW CITRUS TONIC',
+        napkinSubtitle: 'Extracción en frío de 18 horas con tónica botánica',
+        ingredients: [
+          '<strong>Café Nariño Geisha & Castillo:</strong> Macerado pacientemente en agua purificada a 4°C durante 18 horas.',
+          '<strong>Agua Tónica Botánica Artesanal:</strong> Elaborada con corteza de quina natural y azúcar de caña orgánica.',
+          '<strong>Garnish Cítrico:</strong> Rodaja de naranja caramelizada deshidratada a baja temperatura.',
+          '<strong>Aromático:</strong> Ramita de romero fresco ligeramente machacada para liberar aceites esenciales.'
+        ],
+        badges: [
+          { text: '100% Vegano', color: 'bg-emerald-100 text-emerald-800' },
+          { text: 'Sin Gluten', color: 'bg-blue-100 text-brand-blue' },
+          { text: 'Extracción 18 Horas', color: 'bg-amber-100 text-amber-800' },
+          { text: 'Sin Lácteos', color: 'bg-slate-100 text-slate-800' }
+        ],
+        notes: '<strong>Perfil sensorial:</strong> Al no tener extracción térmica, el café no contiene acidez agresiva ni amargor excesivo; resalta notas naturales de chocolate blanco, bergamota y té negro.'
+      },
+      flatwhite: {
+        id: 'flatwhite',
+        category: 'coffee',
+        categoryName: 'Cafés de Especialidad',
+        name: 'Flat White Doble Ristretto',
+        price: '$8.500 COP',
+        image: 'render_flat_white.png',
+        desc: 'Shot doble concentrado ristretto con microespuma sedosa y densa en taza azul `#0400FF`. Acompañado de galleta red velvet artesanal.',
+        hotspots: [
+          { label: '☕ Doble Ristretto', x: '50%', y: '54%', type: 'coffee' },
+          { label: '🍪 Galleta Red Velvet', x: '72%', y: '68%', type: 'cookie' }
+        ],
+        napkinTitle: 'FLAT WHITE DOBLE RISTRETTO',
+        napkinSubtitle: 'Extracción corta de 20g de café de origen Cauca',
+        ingredients: [
+          '<strong>Doble Shot Ristretto:</strong> 20g in / 25g out en 22 segundos, extrayendo los aceites más dulces del grano.',
+          '<strong>Origen Cauca (1.800 msnm):</strong> Notas intensas a chocolate con leche, avellana tostada y panela.',
+          '<strong>Microespuma Sedosa (130ml):</strong> Leche entera emulsionada al vapor con burbujas microscópicas aterciopeladas.',
+          '<strong>Biscotti Red Velvet:</strong> Pequeña galleta artesanal de mantequilla con toque de cacao y remolacha natural.'
+        ],
+        badges: [
+          { text: 'Doble Ristretto', color: 'bg-blue-100 text-brand-blue' },
+          { text: 'Microespuma 65°C', color: 'bg-amber-100 text-amber-800' },
+          { text: 'Vajilla Oficial #0400FF', color: 'bg-slate-100 text-slate-800' }
+        ],
+        notes: '<strong>Diferencia con el latte:</strong> El Flat White tiene una mayor proporción de café espresso frente a leche y una microespuma más fina y brillante, ofreciendo un sabor a café mucho más pronunciado.'
+      },
+      matcha: {
+        id: 'matcha',
+        category: 'cold',
+        categoryName: 'Bebidas Frías / Especiales',
+        name: 'Ceremonial Iced Matcha Latte',
+        price: '$13.500 COP',
+        image: 'render_matcha_latte.png',
+        desc: 'Matcha ceremonial de primera cosecha importado de Uji (Japón), batido a mano y servido en capas sobre leche de avena orgánica barista.',
+        hotspots: [
+          { label: '🍵 Matcha Ceremonial Uji', x: '50%', y: '38%', type: 'matcha' },
+          { label: '🥛 Leche de Avena Barista', x: '50%', y: '68%', type: 'oat' }
+        ],
+        napkinTitle: 'CEREMONIAL ICED MATCHA LATTE',
+        napkinSubtitle: 'Grado ceremonial importado de Kioto, Japón con leche de avena',
+        ingredients: [
+          '<strong>Matcha Ceremonial Uji (Kioto):</strong> Hojas de té verde tencha cultivadas bajo sombra y molidas en molino de granito.',
+          '<strong>Batido Tradicional:</strong> Emulsionado con chasen de bambú en agua a 75°C.',
+          '<strong>Leche de Avena Barista Orgánica:</strong> Textura cremosa natural sin azúcar añadida ni gomas artificiales.',
+          '<strong>Hielo Cristalino:</strong> Bloques puros de agua filtrada de lenta disolución.'
+        ],
+        badges: [
+          { text: 'Grado Ceremonial Uji', color: 'bg-emerald-100 text-emerald-800' },
+          { text: '100% Vegano', color: 'bg-emerald-100 text-emerald-800' },
+          { text: 'Sin Lácteos', color: 'bg-blue-100 text-brand-blue' },
+          { text: 'Rico en L-Teanina', color: 'bg-purple-100 text-purple-800' }
+        ],
+        notes: '<strong>Energía sostenida:</strong> El té verde ceremonial combina cafeína suave con L-Teanina, promoviendo un estado de concentración calmada sin los picos de ansiedad del café tradicional.'
+      }
+    };
+
+    let currentProduct = PRODUCTS.banana;
+
+    function renderMenuGrid(cat = 'all') {
+      const grid = document.getElementById('products-grid');
+      grid.innerHTML = '';
+
+      Object.values(PRODUCTS).forEach(prod => {
+        if (cat !== 'all' && prod.category !== cat) return;
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-2xl border-2 border-slate-200 hover:border-brand-blue overflow-hidden shadow-sm hover:shadow-xl transition cursor-pointer group flex flex-col justify-between";
+        card.onclick = () => openDish(prod.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="relative aspect-[4/3] bg-slate-900 overflow-hidden">
+              <img src="${prod.image}" alt="${prod.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-brand-blue text-white text-[11px] font-black uppercase tracking-wider shadow">
+                ✨ Modelo 3D Activo
+              </span>
+            </div>
+            
+            <div class="p-4 space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-brand-blue uppercase tracking-wide">${prod.categoryName}</span>
+                <span class="text-base font-black text-slate-900">${prod.price}</span>
+              </div>
+              <h3 class="font-black text-base text-slate-900 leading-snug group-hover:text-brand-blue transition">
+                ${prod.name}
+              </h3>
+              <p class="text-xs text-slate-600 line-clamp-2">
+                ${prod.desc}
+              </p>
+            </div>
+          </div>
+
+          <div class="p-4 pt-0">
+            <button class="w-full py-2.5 rounded-xl bg-blue-50 text-brand-blue font-extrabold text-xs group-hover:bg-brand-blue group-hover:text-white transition flex items-center justify-center gap-1.5">
+              <span>Ver en 3D e Ingredientes</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterCategory(cat) {
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.className = "cat-pill px-4 py-2 rounded-xl bg-white text-slate-700 border border-slate-200 text-xs font-bold whitespace-nowrap hover:border-brand-blue transition";
+      });
+      const activeBtn = document.getElementById(`cat-${cat}`);
+      if (activeBtn) {
+        activeBtn.className = "cat-pill px-4 py-2 rounded-xl bg-brand-blue text-white text-xs font-bold whitespace-nowrap shadow-sm";
+      }
+      renderMenuGrid(cat);
+    }
+
+    function openDish(productId) {
+      currentProduct = PRODUCTS[productId] || PRODUCTS.banana;
+
+      // Update image
+      const img = document.getElementById('dish-image');
+      img.src = currentProduct.image;
+      img.alt = currentProduct.name;
+
+      // Update meta
+      document.getElementById('dish-category').innerText = currentProduct.categoryName;
+      document.getElementById('dish-name').innerText = currentProduct.name;
+      document.getElementById('dish-price').innerText = currentProduct.price;
+      document.getElementById('order-product-name').innerText = currentProduct.name;
+
+      // Update hotspots
+      const hotspotsContainer = document.getElementById('dish-hotspots');
+      hotspotsContainer.innerHTML = '';
+      currentProduct.hotspots.forEach(hp => {
+        const btn = document.createElement('div');
+        btn.className = `absolute -translate-x-1/2 -translate-y-1/2 z-20`;
+        btn.style.left = hp.x;
+        btn.style.top = hp.y;
+        btn.innerHTML = `
+          <button onclick="highlightNapkin()" class="pulse-btn flex items-center gap-2 px-3.5 py-2 rounded-full bg-brand-blue text-white font-bold text-xs shadow-lg shadow-blue-900/50 hover:scale-105 transition">
+            <span class="w-2 h-2 rounded-full bg-white animate-ping"></span>
+            ${hp.label}
+          </button>
+        `;
+        hotspotsContainer.appendChild(btn);
+      });
+
+      // Update napkin
+      document.getElementById('napkin-title').innerText = currentProduct.napkinTitle;
+      document.getElementById('napkin-subtitle').innerText = currentProduct.napkinSubtitle;
+      
+      const ingList = document.getElementById('napkin-ingredients');
+      ingList.innerHTML = '';
+      currentProduct.ingredients.forEach(item => {
+        const li = document.createElement('li');
+        li.className = "flex items-start gap-2";
+        li.innerHTML = `<span class="text-brand-blue font-bold">✔</span><span>${item}</span>`;
+        ingList.appendChild(li);
+      });
+
+      const badgeList = document.getElementById('napkin-badges');
+      badgeList.innerHTML = '';
+      currentProduct.badges.forEach(b => {
+        const span = document.createElement('span');
+        span.className = `px-2.5 py-1 rounded-md text-xs font-bold ${b.color}`;
+        span.innerText = b.text;
+        badgeList.appendChild(span);
+      });
+
+      document.getElementById('napkin-notes').innerHTML = currentProduct.notes;
+
+      // Switch views
+      document.getElementById('view-menu').classList.add('hidden');
+      document.getElementById('view-dish').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function highlightNapkin() {
+      const napkin = document.getElementById('napkin-section');
+      napkin.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      napkin.classList.add('ring-4', 'ring-brand-blue');
+      setTimeout(() => napkin.classList.remove('ring-4', 'ring-brand-blue'), 1000);
+    }
+
+    function goToMenu() {
+      document.getElementById('view-dish').classList.add('hidden');
+      document.getElementById('view-menu').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Init
+    renderMenuGrid('all');
+    openDish('banana');
+  </script>
+</body>
+</html>
